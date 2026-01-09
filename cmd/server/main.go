@@ -27,14 +27,19 @@ func main() {
 		return
 	}
 	defer amqpCh.Close()
-	/*
-		err = pubsub.PublishJSON(
-			amqpCh,
-			routing.ExchangePerilDirect,
-			routing.PauseKey,
-			routing.PlayingState{IsPaused: true},
-		)
-	*/
+
+	logsKey := fmt.Sprintf("%s,*", routing.GameLogSlug)
+	logsCh, _, err := pubsub.DeclareAndBind(
+		amqpCon,
+		routing.ExchangePerilTopic,
+		routing.GameLogSlug,
+		logsKey,
+		pubsub.QueueDurable,
+	)
+	if err != nil {
+		return
+	}
+	defer logsCh.Close()
 
 	fmt.Println("AMQP connection was successful.")
 	fmt.Println("Starting Peril server...")
